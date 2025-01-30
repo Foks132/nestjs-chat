@@ -5,20 +5,24 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MessageModule } from './message/message.module';
 
 @Module({
-  imports: [ChatModule, TypeOrmModule.forRootAsync({
-    imports: [ConfigModule.forRoot()],
-    useFactory: (configService: ConfigService) => ({
-      type: "mysql",
-      host: configService.get("DATABASE_HOST"),
-      port: configService.get("DATABASE_PORT"),
-      username: configService.get("DATABASE_USERNAME"),
-      password: configService.get("DATABASE_PASSWORD"),
-      database: configService.get("DATABASE_NAME"),
-      synchronize: true,
-      entities: [__dirname + "/**/*.entity{.ts,.js}"],
+  imports: [
+    ChatModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule.forRoot()],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('DATABASE_HOST'),
+        port: configService.get('DATABASE_PORT'),
+        username: configService.get('DATABASE_USERNAME'),
+        password: configService.get('DATABASE_PASSWORD'),
+        database: configService.get('DATABASE_NAME'),
+        synchronize: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      }),
+      inject: [ConfigService],
     }),
-    inject: [ConfigService],
-  }), MessageModule,],
+    MessageModule,
+  ],
   controllers: [],
   providers: [],
 })

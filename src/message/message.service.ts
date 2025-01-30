@@ -7,19 +7,24 @@ import { ChatService } from 'src/chat/chat.service';
 
 @Injectable()
 export class MessageService {
-    constructor(
-        @InjectRepository(Message)
-        private messageRepository: Repository<Message>,
-        private readonly chatService: ChatService) { }
+  constructor(
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
+    private readonly chatService: ChatService,
+  ) {}
 
-    async createMessage(createMessageDto: CreateMessageDto): Promise<Message | null> {
-        const chat = await this.chatService.getChatByName(createMessageDto.roomName);
+  async createMessage(
+    createMessageDto: CreateMessageDto,
+  ): Promise<Message | null> {
+    const chat = await this.chatService.getChatByName(
+      createMessageDto.roomName,
+    );
 
-        const newMessage = this.messageRepository.create({
-            ...createMessageDto,
-            chatId: chat.id
-        });
+    const newMessage = this.messageRepository.create({
+      ...createMessageDto,
+      chatId: chat.id,
+    });
 
-        return await this.messageRepository.save(newMessage);
-    }
+    return await this.messageRepository.save(newMessage);
+  }
 }

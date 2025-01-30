@@ -3,14 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { Message } from 'src/message/entities/message.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(Chat)
-    private chatRepository: Repository<Chat>
-  ) { }
+    private chatRepository: Repository<Chat>,
+  ) {}
 
   async createChat(createChatDto: CreateChatDto): Promise<Chat> {
     const chat = this.chatRepository.create(createChatDto);

@@ -12,7 +12,10 @@ export class CreateMessageDto {
   @IsNotEmpty()
   userName: string;
 
-  @ApiProperty({ example: 'Example message text', description: 'Текст сообщения' })
+  @ApiProperty({
+    example: 'Example message text',
+    description: 'Текст сообщения',
+  })
   @IsString()
   @IsNotEmpty()
   message: string;

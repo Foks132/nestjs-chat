@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, RelationId } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  RelationId,
+} from 'typeorm';
 import { Chat } from '../../chat/entities/chat.entity';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString, IsNotEmpty } from 'class-validator';

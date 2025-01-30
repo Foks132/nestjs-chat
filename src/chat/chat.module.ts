@@ -12,4 +12,4 @@ import { MessageService } from 'src/message/message.service';
   imports: [TypeOrmModule.forFeature([Chat, Message])],
   providers: [ChatGateway, ChatService, MessageService],
 })
-export class ChatModule { }
+export class ChatModule {}

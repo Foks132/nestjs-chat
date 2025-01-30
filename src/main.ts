@@ -6,14 +6,18 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes(new ValidationPipe());
   const configService = new ConfigService();
   const configSwagger = new DocumentBuilder()
     .setTitle('Chat API')
     .setDescription('API documentation (REST & WebSocket)')
     .setVersion('1.0')
     .build();
-  SwaggerModule.setup('api', app, SwaggerModule.createDocument(app, configSwagger));
+  SwaggerModule.setup(
+    'api',
+    app,
+    SwaggerModule.createDocument(app, configSwagger),
+  );
   await app.listen(configService.get('APP_PORT') ?? 3000);
 }
 bootstrap();

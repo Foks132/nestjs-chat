@@ -34,17 +34,17 @@ export class ChatGateway implements OnModuleInit {
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     private readonly chatService: ChatService,
-    private readonly messageService: MessageService
-  ) { }
+    private readonly messageService: MessageService,
+  ) {}
   @WebSocketServer() server: Server;
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
       console.log(`Connected ${socket.id}`);
-    })
+    });
   }
 
-  @UsePipes(WsParseJsonPipe)
+  @UsePipes(WsParseJsonPipe, WsValidateMessagePipe)
   @SubscribeMessage('joinChat')
   async handleJoinChat(
     @ConnectedSocket() client: Socket,
@@ -52,25 +52,17 @@ export class ChatGateway implements OnModuleInit {
   ) {
     const { userName, roomName } = payload;
     client.emit('userJoined', { userName });
-    
-    if (!userName) {
-      throw new WsException('Set userName');
-    }
-    if (!roomName) {
-      throw new WsException('Set roomName');
-    }
-
-    let chat = await this.chatService.getChatByName(roomName);
+    const chat = await this.chatService.getChatByName(roomName);
     if (!chat) {
       throw new WsException('Not found chat');
     }
-    console.log(chat)
-
     client.join(roomName);
-    this.server.to(roomName).emit('onMessage', `${userName} joined the chat ${roomName}`)
+    this.server
+      .to(roomName)
+      .emit('onMessage', `${userName} joined the chat ${roomName}`);
   }
 
-  @UsePipes(WsParseJsonPipe)
+  @UsePipes(WsParseJsonPipe, WsValidateMessagePipe)
   @SubscribeMessage('leaveChat')
   async handleLeaveChat(
     @ConnectedSocket() client: Socket,
@@ -79,50 +71,58 @@ export class ChatGateway implements OnModuleInit {
     const { userName, roomName } = payload;
     client.emit('userLeave', { userName });
 
-    let chat = await this.chatService.getChatByName(roomName);
+    const chat = await this.chatService.getChatByName(roomName);
     if (!chat) {
       throw new WsException('Not found chat');
     }
-    this.server.to(roomName).emit('onMessage', `${userName} leaves the chat ${roomName}`)
+    this.server
+      .to(roomName)
+      .emit('onMessage', `${userName} leaves the chat ${roomName}`);
     client.leave(roomName);
   }
 
-  @UsePipes(WsParseJsonPipe)
+  @UsePipes(WsParseJsonPipe, WsValidateMessagePipe)
   @SubscribeMessage('newMessage')
-  onNewMessage(@ConnectedSocket() client: Socket, @MessageBody() payload: CreateMessageDto) {
+  onNewMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: CreateMessageDto,
+  ) {
     const { userName, roomName } = payload;
-    if (!userName) {
-      throw new WsException('Set userName');
-    }
-    if (!roomName) {
-      throw new WsException('Set roomName');
-    }
     if (!client.rooms.has(roomName)) {
       throw new WsException('You should connect to the chat');
     }
+    if (!payload.message) {
+      throw new WsException('You didnt enter the message');
+    }
     const message = {
-      ...payload, 
+      ...payload,
       date: new Date().toISOString(),
     };
-    this.messageService.createMessage(message)
-    this.server.to(payload.roomName).emit('onMessage', message)
+    this.messageService.createMessage(message);
+    this.server.to(roomName).emit('onMessage', message);
   }
 
   @UsePipes(WsParseJsonPipe)
   @SubscribeMessage('createChat')
-  async createChat(@ConnectedSocket() client: Socket, @MessageBody() payload: CreateChatDto) {
+  async createChat(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: CreateChatDto,
+  ) {
     const { name } = payload;
+    if (!name) {
+      throw new WsException('Name is required');
+    }
     let chat = await this.chatService.getChatByName(name);
     if (chat) {
       throw new WsException('A chat with that name already exists');
     }
-    chat = await this.chatService.createChat({ name: name }); 
-    this.server.emit('onMessage', chat)
+    chat = await this.chatService.createChat({ name: name });
+    this.server.emit('onMessage', chat);
   }
 
   @SubscribeMessage('getChats')
   async getChats() {
     const chats = await this.chatService.getAllChats();
-    this.server.emit('onMessage', chats)
+    this.server.emit('onMessage', chats);
   }
 }
